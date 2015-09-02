@@ -69,6 +69,11 @@ from kotti.util import Link
 from kotti.util import LinkParent
 from kotti.util import LinkRenderer
 
+from sqlalchemy_continuum import make_versioned
+
+
+make_versioned(user_cls='Principal')
+
 
 class ContainerMixin(object, DictMixin):
     """ Containers form the API of a Node that's used for subitem
@@ -206,6 +211,7 @@ class Node(Base, ContainerMixin, PersistentACLMixin):
 
     implements(INode)
 
+    __versioned__ = {}
     __table_args__ = (
         UniqueConstraint('parent_id', 'name'),
         )
