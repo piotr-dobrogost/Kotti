@@ -14,9 +14,11 @@ from sqlalchemy import DateTime
 from sqlalchemy import func
 from sqlalchemy import Integer
 from sqlalchemy import Unicode
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql.expression import and_
 from sqlalchemy.sql.expression import or_
+from sqlalchemy.sql.schema import Sequence
 from zope.deprecation.deprecation import deprecated
 
 from kotti import Base
@@ -87,7 +89,9 @@ class Principal(Base):
         'None' once confirmation has succeeded.
     """
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer,
+                Sequence('principals_id_seq', optional=True),
+                primary_key=True)
     name = Column(Unicode(100), unique=True)
     password = Column(Unicode(100))
     active = Column(Boolean)

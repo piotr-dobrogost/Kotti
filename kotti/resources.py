@@ -32,7 +32,6 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy import bindparam
 from sqlalchemy import event
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import backref
@@ -41,6 +40,7 @@ from sqlalchemy.orm import relation
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import and_
 from sqlalchemy.sql import select
+from sqlalchemy.sql.schema import Sequence
 from sqlalchemy.util import classproperty
 from transaction import commit
 from zope.interface import implementer
@@ -187,7 +187,9 @@ class LocalGroup(Base):
 
     #: Primary key for the node in the DB
     #: (:class:`sqlalchemy.types.Integer`)
-    id = Column(Integer(), primary_key=True)
+    id = Column(Integer(),
+                Sequence('local_groups_id_seq', optional=True),
+                primary_key=True)
     #: ID of the node for this assignment
     #: (:class:`sqlalchemy.types.Integer`)
     node_id = Column(ForeignKey('nodes.id'), index=True)
@@ -227,7 +229,9 @@ class Node(Base, ContainerMixin, PersistentACLMixin):
 
     #: Primary key for the node in the DB
     #: (:class:`sqlalchemy.types.Integer`)
-    id = Column(Integer(), primary_key=True)
+    id = Column(Integer(),
+                Sequence('nodes_id_seq', optional=True),
+                primary_key=True)
     #: Lowercase class name of the node instance
     #: (:class:`sqlalchemy.types.String`)
     type = Column(String(30), nullable=False)
@@ -444,7 +448,9 @@ class Tag(Base):
 
     #: Primary key column in the DB
     #: (:class:`sqlalchemy.types.Integer`)
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer,
+                Sequence('tags_id_seq', optional=True),
+                primary_key=True)
 
     #: Title of the tag
     #: :class:`sqlalchemy.types.Unicode`
@@ -848,7 +854,10 @@ def _adjust_for_engine(engine):
         Node.__table__.indexes = set(
             index for index in Node.__table__.indexes
             if index.name != u"ix_nodes_path")
-
+    elif engine.dialect.name == 'oracle':  # pragma: no cover
+        # In Oracle one can't insert an empty string in a NOT NULL column –
+        # see http://stackoverflow.com/q/203493/
+        Node.name.prop.columns[0].nullable = True
 
 def initialize_sql(engine, drop_all=False):
     DBSession.registry.clear()
