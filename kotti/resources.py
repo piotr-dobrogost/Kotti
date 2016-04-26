@@ -32,6 +32,7 @@ from sqlalchemy import UniqueConstraint
 from sqlalchemy import bindparam
 from sqlalchemy import event
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import backref
