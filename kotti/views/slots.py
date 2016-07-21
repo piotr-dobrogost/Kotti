@@ -50,7 +50,7 @@ from pyramid.view import render_view
 from kotti.events import ObjectEvent
 from kotti.events import objectevent_listeners
 
-REQUEST_ATTRS_TO_COPY = ('context', 'registry', 'user', 'cookies', 'session')
+REQUEST_ATTRS_TO_COPY = ('context', 'registry', 'user', 'cookies', 'session', 'ian_context')
 
 
 def _encode(params):
@@ -64,7 +64,7 @@ def _render_view_on_slot_event(view_name, event, params):
     context = event.object
     request = event.request
 
-    view_request = Request.blank(
+    view_request = request.blank(
         "{0}/{1}".format(request.path.rstrip('/'), view_name),
         base_url=request.application_url,
         POST=_encode(params))
