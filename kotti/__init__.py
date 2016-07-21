@@ -182,16 +182,23 @@ def main(global_config, **settings):
     # This function is a 'paste.app_factory' and returns a WSGI
     # application.
 
-    from kotti.resources import initialize_sql
-    config = base_configure(global_config, **settings)
-    engine = engine_from_config(config.registry.settings)
-    initialize_sql(engine)
+    config = Configurator(
+        request_factory=settings['kotti.request_factory'][0],
+        settings=settings)
+
+    base_configure(config, global_config, **settings)
+    configure_db(config)
     return config.make_wsgi_app()
 
 
-def base_configure(global_config, **settings):
-    # Resolve dotted names in settings, include plug-ins and create a
-    # Configurator.
+def configure_db(config):
+    from kotti.resources import initialize_sql
+    engine = engine_from_config(config.registry.settings, 'sqlalchemy.')
+    initialize_sql(engine)
+
+
+def base_configure(config, global_config, **settings):
+    # Resolve dotted names in settings and include plug-ins
 
     from kotti.resources import get_root
 
@@ -219,9 +226,8 @@ def base_configure(global_config, **settings):
     # overrides of configuration from ``kotti.base_includes``:
     pyramid_includes = settings.pop('pyramid.includes', '')
 
-    config = Configurator(
-        request_factory=settings['kotti.request_factory'][0],
-        settings=settings)
+    config.set_request_factory(settings['kotti.request_factory'][0])
+    config.add_settings(settings)
     config.begin()
 
     config.hook_zca()
@@ -249,8 +255,6 @@ def base_configure(global_config, **settings):
     config.commit()
 
     config._set_root_factory(get_root)
-
-    return config
 
 
 def includeme(config):
